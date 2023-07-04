@@ -11,14 +11,14 @@
 //mark - an achieved (or desired) score for the assignment. intended to be variable
 class Assignment{
     constructor(weighting, mark, parentModule){
-        this.weighting = weighting;
-        this.mark = mark;
+        this.changeWeighting(weighting);
+        this.changeMark(mark);
         this.parentModule = parentModule || null;
     }
 
     //updates all upward model components affected by changing weight
     changeWeighting(newWeight){
-        this.weighting = newWeight;
+        this.weighting = parseInt(newWeight);
         if(this.parentModule){
             this.parentModule.calculateAverage();
         }
@@ -26,7 +26,7 @@ class Assignment{
 
     //updates all upward model components affected by changing weight
     changeMark(newMark){
-        this.mark = newMark;
+        this.mark = parseInt(newMark);
         if(this.parentModule){
             this.parentModule.calculateAverage();
         }
@@ -37,7 +37,7 @@ class Assignment{
 //and provides information on credits and marks achieved.
 
 //credits - pre-determined credit point value for a module
-//assignments - array of assignments that contribute to module
+//assignments - array of assignments that contribute to module's mark
 //module mark - module's overall achieved grade based on assignments' performance
 
 class Module{
@@ -47,6 +47,7 @@ class Module{
         this.assignments = assignments;
         this.parentModuleCollection = parent;
         this.moduleGrade = this.calculateAverage();
+        this.guiElement;
     }
 
     //return the weighted average mark of module's assignments
@@ -58,9 +59,14 @@ class Module{
         if (weightSum <= 0) return 0;//avoid zero-division
 
         this.moduleGrade = this.assignments
-                        .reduce( (avg, ass) => avg + ass.mark * (ass.weighting / weightSum));
+                        .reduce( (avg, ass) => avg + ass.mark * (ass.weighting / weightSum), 0);
 
         this.parentModuleCollection.calculateAverage();
+
+        if(this.guiElement){
+            console.log(this.moduleGrade);
+            this.guiElement.textContent = `Module Grade: ${this.moduleGrade}`;
+        }
 
         return this.moduleGrade;
     }
@@ -155,25 +161,83 @@ function addModuleCollectionGUI(moduleCollection, yearContainer){
 
     var addModuleBtn = document.createElement('button');
     addModuleBtn.textContent = "add module";
-    addModuleBtn.addEventListener("click", () => addModuleGUI(moduleCollection, modulesContainer, 
-                                                              titleInput.value, creditsInput.value));
+    addModuleBtn.addEventListener("click", () => 
+    {
+        if (titleInput.value.length <= 0 ) {window.alert("enter unit title")}
+        else addModuleGUI(moduleCollection, modulesContainer, titleInput.value, creditsInput.value)
+    }
+    );
     
     appendChildren(moduleBuilder, [titleLabel, titleInput, creditsLabel, creditsInput, addModuleBtn]);
     appendChildren(yearContainer, [modulesContainer, moduleBuilder]);
 }
 
 function addModuleGUI(parentModuleCollection, modulesContainer, title, credits){
-    var newModule = new Module(title, credits, [], parentModuleCollection);
+    var myModule = new Module(title, credits, [], parentModuleCollection);
     
+    var assignmentsContainer = createDocElem('div', ['assignments-container'], '');
     var assignmentBuilder = createDocElem('div', ['assignment-builder'], "heyyy");
-    modulesContainer.appendChild(assignmentBuilder)
+
+    var modTitle = createDocElem('h3', ['module-title'], `${title}`);
+    var creditsInfo = createDocElem('p', ['credits-info'], `${credits} credit points`)
+    var moduleAverageText = createDocElem('p', ['module-average'], `Module Grade: `)
+    myModule.guiElement = moduleAverageText;
+    myModule.calculateAverage();
+
+    var weightingLabel = createDocElem('label', [], 'weight %:');
+    var weightingInput = createDocInput('number', [], 100);
+    var markLabel      = createDocElem('label', [], 'mark:');
+    var markInput      = createDocInput('number', [], 0);
+
+    var addAssigmentBtn = createDocElem('button', [], 'Add Assignment');
+    addAssigmentBtn.addEventListener("click", () => 
+    {
+        var newAssigment = new Assignment(weightingInput.value, markInput.value, myModule)
+        myModule.assignments.push(newAssigment);
+        myModule.calculateAverage();
+        addAssignmentGUI(assignmentsContainer, newAssigment);
+    }
+    );
+    
+
+
+    appendChildren(assignmentsContainer, [modTitle, creditsInfo, moduleAverageText]);
+
+
+    appendChildren(assignmentBuilder, [weightingLabel, weightingInput, markLabel, markInput, addAssigmentBtn]);
+    appendChildren(modulesContainer, [assignmentsContainer, assignmentBuilder]);
+
+
+
 
 }
 
+function addAssignmentGUI(assignmentsContainer, assignment){
+    var assignmentContainer = createDocElem('div', ['assingment-container'], '');
 
-//shortcut to add classnames, text content and input type to doc. fragment in one line
+    var assignmentTitle = createDocElem('h4', ['assignment-title'], `assignment ${assignment.parentModule.assignments.length}`);
+
+    var weightingLabel = createDocElem('label', [], 'weight %:');
+    var weightingInput = createDocInput('number', [], assignment.weighting);
+    weightingInput.addEventListener("input", () => {
+        assignment.changeWeighting(weightingInput.value);
+    })
+
+    var markLabel      = createDocElem('label', [], 'mark:');
+    var markInput      = createDocInput('number', [], assignment.mark);
+    markInput.addEventListener("input", () => {
+        assignment.changeMark(markInput.value);
+    })
+
+    appendChildren(assignmentContainer, [assignmentTitle, weightingLabel, weightingInput, markLabel, markInput]);
+    appendChildren(assignmentsContainer, [assignmentContainer]);
+}
+
+//--------------------------------HELPER FUNCTIONS-------------------------------------
+
+//shortcut to add classnames, text content and input type to a doc. fragment in one line
 //use empty array if no class name needed
-//use empty strings if input type and text content not needed
+//use empty string if text content not needed
 function createDocElem(tag, classNamesArray, textContent){
     myElem = document.createElement(tag);
 
@@ -194,6 +258,8 @@ function createDocElem(tag, classNamesArray, textContent){
     return myElem;
 }
 
+//similar to createDocElem but for inputs 
+//asks for type and value instead of tag and textContent
 function createDocInput(type, classNamesArray, value){
     myInput = document.createElement('input');
 
@@ -205,6 +271,7 @@ function createDocInput(type, classNamesArray, value){
 
     myInput.type = type;
 
+    //NEED TO ADD SOME VALIDATION HERE
     if(value){
         myInput.value = value;
     }
@@ -214,7 +281,5 @@ function createDocInput(type, classNamesArray, value){
 
 //append an array of document fragments to a container
 function appendChildren(container, children){
-    for (child of children){
-        container.appendChild(child);
-    }
+    children.forEach(c => container.appendChild(c))
 }
