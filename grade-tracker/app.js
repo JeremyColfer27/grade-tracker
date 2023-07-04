@@ -1,3 +1,5 @@
+
+
 //grade-tracker: calculate and store overall grades for academic years.
 
 
@@ -43,7 +45,7 @@ class Assignment{
 class Module{
     constructor(title, credits, assignments, parent){
         this.title = title;
-        this.credits = credits;
+        this.credits = parseInt(credits);
         this.assignments = assignments;
         this.parentModuleCollection = parent;
         this.moduleGrade = this.calculateAverage();
@@ -84,9 +86,10 @@ class ModuleCollection{
     constructor(title, weighting, modules, parent){
         this.title = title;
         this.modules = modules;
-        this.weighting = weighting;
+        this.weighting = parseInt(weighting);
         this.averageGrade = this.calculateAverage();
         this.parent = parent;
+        this.guiElement;
     }
 
     //return  average grade of all modules, weighted by their credit points
@@ -96,9 +99,15 @@ class ModuleCollection{
 
         if (creditSum <= 0) return 0;//avoid zero-division
 
+        console.log(`CS ${creditSum}`);
         this.averageGrade = this.modules
-                            .reduce( (avg, mod) => avg + mod.moduleGrade * (mod.credits / creditSum));
+                            .reduce( (avg, mod) => avg + mod.moduleGrade * (mod.credits / creditSum), 0);
 
+        if(this.guiElement){
+            this.guiElement.textContent = `Collection Grade: ${this.averageGrade}`
+        }
+
+        console.log("collection average");
         this.parent.calculateAverage();
 
         return this.averageGrade;
@@ -121,9 +130,9 @@ class OverallDegree{
 
         if (weightSum <= 0) return 0;//avoid zero-division
 
-        this.classificationMark = this.modules
-                    .reduce( (avg, ay) => avg + ay.averageGrade * (ay.weightSum / weightSum));
-
+        this.classificationMark = this.academicYears
+                    .reduce( (avg, ay) => avg + ay.averageGrade * (ay.weightSum / weightSum), 0);
+        console.log(this.classificationMark);
         return this.classificationMark;
     }
 }
@@ -141,71 +150,90 @@ addYearBtn.addEventListener("click", () => {
         var weighting = yearWeightingInput.value;
 
         var myYear = new ModuleCollection(title, weighting, [], myDegree);
-
+        myDegree.academicYears.push(myYear)
         var yearContainer = createDocElem('div', ['year-container'], '')
-        document.body.appendChild(yearContainer);
+        var yearTitle = createDocElem('h2', ['year-title'], `${title}`);
+
+        var collectionAverageText = createDocElem('p', ['collection-average'], `Collection Grade: `)
+        myYear.guiElement = collectionAverageText;
+        myYear.calculateAverage();
+
+        appendChildren(yearContainer, [yearTitle, collectionAverageText]);
+        appendChildren(document.body, [yearContainer])
+        
 
         addModuleCollectionGUI(myYear, yearContainer);
     }
 )
 
 function addModuleCollectionGUI(moduleCollection, yearContainer){
-    var modulesContainer = createDocElem('div', ['module-container'], '');
-    var moduleBuilder    = createDocElem('div', 'module-container', '');
+    var modulesContainer = createDocElem('div', ['modules-container'], '');
+    var moduleBuilder    = createDocElem('div', ['module-builder'], '');
 
+    var titleControls = document.createElement('div', ['module-title-controls'], '');
     var titleLabel = createDocElem('label', [], `Module Title:`);
     var titleInput = createDocInput('text', [], "");
 
+    var creditsControls = document.createElement('div', ['module-credits-controls'], '');
     var creditsLabel = createDocElem('label', [], `Credits:`);
     var creditsInput   = createDocInput('number', [], 20);
 
     var addModuleBtn = document.createElement('button');
-    addModuleBtn.textContent = "add module";
+    addModuleBtn.textContent = "add new module";
     addModuleBtn.addEventListener("click", () => 
     {
         if (titleInput.value.length <= 0 ) {window.alert("enter unit title")}
-        else addModuleGUI(moduleCollection, modulesContainer, titleInput.value, creditsInput.value)
+        else {
+            addModuleGUI(moduleCollection, modulesContainer, titleInput.value, parseInt(creditsInput.value));
+            titleInput.value = "";
+        }
     }
     );
     
-    appendChildren(moduleBuilder, [titleLabel, titleInput, creditsLabel, creditsInput, addModuleBtn]);
+    appendChildren(titleControls, [titleLabel, titleInput]);
+    appendChildren(creditsControls, [creditsLabel, creditsInput]);
+
+    appendChildren(moduleBuilder, [titleControls, creditsControls, addModuleBtn]);
     appendChildren(yearContainer, [modulesContainer, moduleBuilder]);
 }
 
 function addModuleGUI(parentModuleCollection, modulesContainer, title, credits){
     var myModule = new Module(title, credits, [], parentModuleCollection);
-    
+    parentModuleCollection.modules.push(myModule);
+
+    var moduleContainer = createDocElem('div', ['module-container'], '');
     var assignmentsContainer = createDocElem('div', ['assignments-container'], '');
-    var assignmentBuilder = createDocElem('div', ['assignment-builder'], "heyyy");
+    var assignmentBuilder = createDocElem('div', ['assignment-builder'], "");
+
+    var moduleInfo = createDocElem('div', ['module-info'], '');
 
     var modTitle = createDocElem('h3', ['module-title'], `${title}`);
-    var creditsInfo = createDocElem('p', ['credits-info'], `${credits} credit points`)
+    var creditsInfo = createDocElem('p', ['credits-info'], `(${credits} credit points)`)
+    appendChildren(moduleInfo, [modTitle, creditsInfo]);
+
     var moduleAverageText = createDocElem('p', ['module-average'], `Module Grade: `)
     myModule.guiElement = moduleAverageText;
     myModule.calculateAverage();
 
-    var weightingLabel = createDocElem('label', [], 'weight %:');
-    var weightingInput = createDocInput('number', [], 100);
-    var markLabel      = createDocElem('label', [], 'mark:');
-    var markInput      = createDocInput('number', [], 0);
+    // var weightingLabel = createDocElem('label', [], 'weight %:');
+    // var weightingInput = createDocInput('number', [], 100);
+    // var markLabel      = createDocElem('label', [], 'mark:');
+    // var markInput      = createDocInput('number', [], 0);
 
-    var addAssigmentBtn = createDocElem('button', [], 'Add Assignment');
-    addAssigmentBtn.addEventListener("click", () => 
+    var addAssignmentBtn = createDocElem('button', [], 'Add New Assignment');
+    addAssignmentBtn.addEventListener("click", () => 
     {
-        var newAssigment = new Assignment(weightingInput.value, markInput.value, myModule)
+        var newAssigment = new Assignment(100, 0, myModule)
         myModule.assignments.push(newAssigment);
         myModule.calculateAverage();
         addAssignmentGUI(assignmentsContainer, newAssigment);
     }
     );
-    
 
-
-    appendChildren(assignmentsContainer, [modTitle, creditsInfo, moduleAverageText]);
-
-
-    appendChildren(assignmentBuilder, [weightingLabel, weightingInput, markLabel, markInput, addAssigmentBtn]);
-    appendChildren(modulesContainer, [assignmentsContainer, assignmentBuilder]);
+    appendChildren(assignmentBuilder, [addAssignmentBtn]);
+    //appendChildren(assignmentBuilder, [weightingLabel, weightingInput, markLabel, markInput, addAssigmentBtn]);
+    appendChildren(moduleContainer, [moduleInfo, moduleAverageText, assignmentsContainer, assignmentBuilder]);
+    appendChildren(modulesContainer, [moduleContainer]);
 
 
 
@@ -213,25 +241,49 @@ function addModuleGUI(parentModuleCollection, modulesContainer, title, credits){
 }
 
 function addAssignmentGUI(assignmentsContainer, assignment){
-    var assignmentContainer = createDocElem('div', ['assingment-container'], '');
+    var assignmentContainer = createDocElem('div', ['assignment-container'], '');
 
     var assignmentTitle = createDocElem('h4', ['assignment-title'], `assignment ${assignment.parentModule.assignments.length}`);
 
+    var weightingControls = createDocElem('div', ['assignment-weighting-controls'], '');
     var weightingLabel = createDocElem('label', [], 'weight %:');
     var weightingInput = createDocInput('number', [], assignment.weighting);
     weightingInput.addEventListener("input", () => {
         assignment.changeWeighting(weightingInput.value);
     })
 
+    appendChildren(weightingControls, [weightingLabel, weightingInput])
+
+    var markControls = createDocElem('div', ['assignment-mark-controls'], '');
     var markLabel      = createDocElem('label', [], 'mark:');
     var markInput      = createDocInput('number', [], assignment.mark);
     markInput.addEventListener("input", () => {
         assignment.changeMark(markInput.value);
     })
-
-    appendChildren(assignmentContainer, [assignmentTitle, weightingLabel, weightingInput, markLabel, markInput]);
+    appendChildren(markControls, [markLabel, markInput])
+    
+    appendChildren(assignmentContainer, [assignmentTitle, weightingControls, markControls]);
     appendChildren(assignmentsContainer, [assignmentContainer]);
 }
+//-------------------------------FILE HANDLING--------------------------------------
+
+const downloadBtn = document.getElementById("download-modules-data");
+downloadBtn.addEventListener("click", function(){
+
+        var element = document.createElement('a');
+        element.setAttribute('href', 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(myDegree)));
+        element.setAttribute('download', "grades.json");
+      
+        element.style.display = 'none';
+        document.body.appendChild(element);
+      
+        element.click();
+      
+        document.body.removeChild(element);
+
+
+})
+
 
 //--------------------------------HELPER FUNCTIONS-------------------------------------
 
