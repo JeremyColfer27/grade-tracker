@@ -1,0 +1,145 @@
+:root{
+    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+}
+*{
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    transition: 0.3s;
+}
+
+body{
+    background-color: rgb(217, 217, 248);
+    padding:10vh 0 8vh 0;
+    width: 90vw;
+    margin:auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap:2em;
+}
+
+header{
+    display: flex;
+    flex-direction: column;
+    height:minmax(40px, 7vh);    
+    display: block;
+    width: 100vw;
+    text-align: center;
+    max-width:100vw;
+    position:fixed;
+    top:0;
+    background: rgb(255, 255, 255);
+    color: rgb(0, 0, 0);
+    box-shadow: 0px 2px 1px 0px rgba(0, 0, 0, 0.287);
+    padding-bottom:0.6em;
+}
+
+header p{
+    font-size: 1.2rem;
+}
+
+button{
+    padding:0.2em;
+}
+
+
+.all-modules-container{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:2.5em;
+}
+
+
+.module-container{
+    background: wheat;
+    display: flex;
+    flex-direction: column;
+    border:red 0px solid;
+    box-shadow: 0px 0px 1px 1px rgba(134, 134, 134, 0.559);
+    padding:1em;
+}
+
+.controls-container{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap:0.4em
+}
+
+
+
+#add-module-container{
+    width: fit-content;
+    display:flex;
+    gap:1em;
+    flex-direction: column;
+    align-items: center;
+    padding:1em;
+    background: white;
+    border:2px solid black;
+}
+
+.all-assignments-container{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+
+    gap:1em;
+    border: green 0px solid;
+    margin:1.4em;
+}
+
+.assignment-container{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    padding:0.5em;
+    border:1px dotted black;
+}
+
+.assignment-container input{
+    width:3em;
+}
+
+.assignment-container h3{
+    margin-bottom:0.2em;
+    font-size: 1rem;
+}
+
+
+
+#add-module-title-input{
+    width:100%;
+}
+
+
+#add-module-credits-input{
+    width:3em;
+    text-align: center;
+}
+
+
+@media screen and (min-width:0px) and (max-width:449px){
+
+    .all-modules-container{
+        grid-template-columns:1fr;
+    }
+
+}
+
+@media screen and (min-width:450px) and (max-width: 799px){
+
+    .all-modules-container{
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+}
+
+@media screen and (min-width:800px) {
+
+    .all-modules-container{
+        grid-template-columns:repeat(3, 1fr);
+    }
+
+}
