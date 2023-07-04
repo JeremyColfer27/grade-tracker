@@ -44,6 +44,15 @@ button{
     padding:0.2em;
 }
 
+input[type='number']{
+    width:3em;
+}
+
+.year-container{
+    display:grid;
+    gap:2em;
+    border: black 1px solid;
+}
 
 .all-modules-container{
     display:grid;

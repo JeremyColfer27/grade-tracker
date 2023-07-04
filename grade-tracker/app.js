@@ -2,7 +2,7 @@
 
 
 
-//--------------------------------CLASSES--------------------------------------------
+//--------------------------------MODEL--------------------------------------------
 
 //an Assignment represents a single assessable submission. 
 //e.g exam, coursework, essay
@@ -41,7 +41,8 @@ class Assignment{
 //module mark - module's overall achieved grade based on assignments' performance
 
 class Module{
-    constructor(credits, assignments, parent){
+    constructor(title, credits, assignments, parent){
+        this.title = title;
         this.credits = credits;
         this.assignments = assignments;
         this.parentModuleCollection = parent;
@@ -74,7 +75,8 @@ class Module{
 //weighting - percentage contribution to (for example) an entire degree classification
 //parent - a collection of moduleCollections. Please suggest a better name haha.
 class ModuleCollection{
-    constructor(modules, weighting, parent){
+    constructor(title, weighting, modules, parent){
+        this.title = title;
         this.modules = modules;
         this.weighting = weighting;
         this.averageGrade = this.calculateAverage();
@@ -117,5 +119,102 @@ class OverallDegree{
                     .reduce( (avg, ay) => avg + ay.averageGrade * (ay.weightSum / weightSum));
 
         return this.classificationMark;
+    }
+}
+
+//--------------------------------CONTROLLER---------------------------------------
+
+const myDegree =  new OverallDegree([]);
+
+const addYearBtn = document.getElementById("add-year-button");
+const yearTitleInput = document.getElementById("year-title-input");
+const yearWeightingInput = document.getElementById("year-weighting-input");
+
+addYearBtn.addEventListener("click", () => {
+        var title = yearTitleInput.value;
+        var weighting = yearWeightingInput.value;
+
+        var myYear = new ModuleCollection(title, weighting, [], myDegree);
+
+        var yearContainer = createDocElem('div', ['year-container'], '')
+        document.body.appendChild(yearContainer);
+
+        addModuleCollectionGUI(myYear, yearContainer);
+    }
+)
+
+function addModuleCollectionGUI(moduleCollection, yearContainer){
+    var modulesContainer = createDocElem('div', ['module-container'], '');
+    var moduleBuilder    = createDocElem('div', 'module-container', '');
+
+    var titleLabel = createDocElem('label', [], `Module Title:`);
+    var titleInput = createDocInput('text', [], "");
+
+    var creditsLabel = createDocElem('label', [], `Credits:`);
+    var creditsInput   = createDocInput('number', [], 20);
+
+    var addModuleBtn = document.createElement('button');
+    addModuleBtn.textContent = "add module";
+    addModuleBtn.addEventListener("click", () => addModuleGUI(moduleCollection, modulesContainer, 
+                                                              titleInput.value, creditsInput.value));
+    
+    appendChildren(moduleBuilder, [titleLabel, titleInput, creditsLabel, creditsInput, addModuleBtn]);
+    appendChildren(yearContainer, [modulesContainer, moduleBuilder]);
+}
+
+function addModuleGUI(parentModuleCollection, modulesContainer, title, credits){
+    var newModule = new Module(title, credits, [], parentModuleCollection);
+    
+    var assignmentBuilder = createDocElem('div', ['assignment-builder'], "heyyy");
+    modulesContainer.appendChild(assignmentBuilder)
+
+}
+
+
+//shortcut to add classnames, text content and input type to doc. fragment in one line
+//use empty array if no class name needed
+//use empty strings if input type and text content not needed
+function createDocElem(tag, classNamesArray, textContent){
+    myElem = document.createElement(tag);
+
+    if(classNamesArray.length > 0 ){
+        for (cn of classNamesArray){
+            myElem.classList.add(cn);
+        }
+    }
+
+    if(textContent.length > 0){
+        myElem.textContent = textContent;
+    }
+
+    if(tag == "input" && type.length > 0){
+        myElem.type = type;
+    }
+
+    return myElem;
+}
+
+function createDocInput(type, classNamesArray, value){
+    myInput = document.createElement('input');
+
+    if(classNamesArray.length > 0 ){
+        for (cn of classNamesArray){
+            myInput.classList.add(cn);
+        }
+    }
+
+    myInput.type = type;
+
+    if(value){
+        myInput.value = value;
+    }
+
+    return myInput;
+}
+
+//append an array of document fragments to a container
+function appendChildren(container, children){
+    for (child of children){
+        container.appendChild(child);
     }
 }
