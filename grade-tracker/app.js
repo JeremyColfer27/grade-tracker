@@ -68,7 +68,7 @@ class Module{
 
         if(this.guiElement){
             console.log(this.moduleGrade);
-            this.guiElement.textContent = `Module Grade: ${this.moduleGrade}`;
+            this.guiElement.textContent = `Module Grade: ${this.moduleGrade.toFixed(1)}`;
         }
 
         return this.moduleGrade;
@@ -107,7 +107,7 @@ class ModuleCollection{
                             .reduce( (avg, mod) => avg + mod.moduleGrade * (mod.credits / creditSum), 0);
 
         if(this.guiElement){
-            this.guiElement.textContent = `Collection Grade: ${this.averageGrade}`
+            this.guiElement.textContent = `Collection Grade: ${this.averageGrade.toFixed(1)}`
         }
 
         console.log("collection average");
@@ -140,7 +140,7 @@ class OverallDegree{
                     .reduce( (avg, ay) => avg + ay.averageGrade * (ay.weighting / weightSum), 0);
         console.log(this.classificationMark);
 
-        this.guiElement.textContent = `degree grade: ${this.classificationMark}`;
+        this.guiElement.textContent = `degree grade: ${this.classificationMark.toFixed(1)}`;
         console.log(JSON.stringify(this));
         reconstructDegree(JSON.stringify(this));
         return this.classificationMark;
@@ -375,6 +375,7 @@ function restoreModuleCollectionGUI(yearsContainer, academicYears, degree){
         var yearContainer = createDocElem('div', ['year-container'], '');
 
         const modulesContainer = createDocElem('div', ['modules-container'], '');
+        const yearTitle = createDocElem('h3', ['year-title'], ay.title);
         //get modules for this year
         restoreModulesGUI(modulesContainer, ay.modules, degree)
         
@@ -407,7 +408,7 @@ function restoreModuleCollectionGUI(yearsContainer, academicYears, degree){
     
         appendChildren(moduleBuilder, [titleControls, creditsControls, addModuleBtn]);
 
-        appendChildren(yearContainer, [modulesContainer, moduleBuilder]);
+        appendChildren(yearContainer, [yearTitle, modulesContainer, moduleBuilder]);
         yearsGUI.push(yearContainer);
 
     }
